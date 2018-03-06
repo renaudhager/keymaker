@@ -24,17 +24,21 @@ install: clean version
 
 build:
 	docker run --rm \
-	-e REPO_URL='https://gitlab.deveng.systems/paas/keymaker' \
-	-e AUTHOR='PaaS' \
-	-e AUTHOR_EMAIL='paas@argos.co.uk' \
-	-e TAG=0.6.1 \
+	-e REPO_URL=$(REPO_URL) \
+	-e AUTHOR=$(AUTHOR) \
+	-e AUTHOR_EMAIL=$(AUTHOR_EMAIL) \
+	-e TAG=$(TAG) \
 	-v $(shell pwd):/build \
 	python:2.7 bash -c 'cd /build; python setup.py sdist'
+
+upload:
+		docker run --rm \
+		-v $(shell pwd):/build \
+		python:2.7 \
+		curl -u $(NEXUS_LOGIN):$(NEXUS_PASSWORD) --upload-file /build/dist/keymaker-$(TAG).tar.gz $(NEXUS_URL)/$(NEXUS_PATH)/
 
 clean:
 	-rm -rf build dist
 	-rm -rf *.egg-info
 
 .PHONY: lint test test_deps docs install clean
-
-include common.mk
