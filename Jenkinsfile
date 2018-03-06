@@ -17,7 +17,7 @@ pipeline {
             }
             environment {
               REPO_URL = "https://gitlab.deveng.systems/paas/keymaker"
-              AUTHOR = "PaaS Team"
+              AUTHOR = "PaaS-Team"
               AUTHOR_EMAIL = "paas@argos.co.uk"
               TAG = getTagForCommit()
             }
