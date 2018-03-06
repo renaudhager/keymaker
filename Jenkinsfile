@@ -22,7 +22,6 @@ pipeline {
               TAG = getTagForCommit()
             }
             steps {
-                //getTag()
                 sh 'make build'
             }
         }
@@ -45,6 +44,7 @@ pipeline {
                 }
             }
         }
+    }
 
     post {
         always {
@@ -52,7 +52,3 @@ pipeline {
         }
     }
 }
-
-// def getTag(){
-//   env.TAG = getTagForCommit()
-// }
