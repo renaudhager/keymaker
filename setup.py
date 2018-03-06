@@ -6,13 +6,18 @@ from setuptools import setup, find_packages
 install_requires = [line.rstrip() for line in open(os.path.join(os.path.dirname(__file__), "requirements.txt"))]
 tests_require = ["coverage", "flake8", "wheel"]
 
+repo_url = os.environ['REPO_URL']
+author = os.environ['AUTHOR']
+author_email = os.environ['AUTHOR_EMAIL']
+tag = os.environ['TAG']
+
 setup(
     name='keymaker',
-    version='0.5.1',
-    url='https://github.com/kislyuk/keymaker',
+    version=tag,
+    url=repo_url,
     license='Apache Software License',
-    author='Andrey Kislyuk',
-    author_email='kislyuk@gmail.com',
+    author=author,
+    author_email=author_email,
     description='Lightweight SSH key management on AWS EC2',
     long_description=open('README.rst').read(),
     install_requires=install_requires,

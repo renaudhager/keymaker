@@ -22,6 +22,15 @@ install: clean version
 	python setup.py bdist_wheel
 	pip install --upgrade dist/*.whl
 
+build:
+	docker run --rm \
+	-e REPO_URL='https://gitlab.deveng.systems/paas/keymaker' \
+	-e AUTHOR='PaaS' \
+	-e AUTHOR_EMAIL='paas@argos.co.uk' \
+	-e TAG=0.6.1 \
+	-v $(shell pwd):/build \
+	python:2.7 bash -c 'cd /build; python setup.py sdist'
+
 clean:
 	-rm -rf build dist
 	-rm -rf *.egg-info
