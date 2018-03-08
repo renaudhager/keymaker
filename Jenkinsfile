@@ -11,6 +11,15 @@ pipeline {
             }
         }
 
+        stage('Generate version module') {
+            when {
+                environment name: 'SKIP', value: 'false'
+            }
+            steps {
+                sh 'make version'
+            }
+        }
+
         stage('Build pip package') {
             when {
                 environment name: 'SKIP', value: 'false'
