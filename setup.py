@@ -6,18 +6,13 @@ from setuptools import setup, find_packages
 install_requires = [line.rstrip() for line in open(os.path.join(os.path.dirname(__file__), "requirements.txt"))]
 tests_require = ["coverage", "flake8", "wheel"]
 
-repo_url = os.environ['REPO_URL']
-author = os.environ['AUTHOR']
-author_email = os.environ['AUTHOR_EMAIL']
-tag = os.environ['TAG']
-
 setup(
     name='keymaker',
-    version=tag,
-    url=repo_url,
+    version='0.6.0',
+    url='https://gitlab.deveng.systems/paas/keymaker',
     license='Apache Software License',
-    author=author,
-    author_email=author_email,
+    author='PaaS Team',
+    author_email='paas@argos.co.uk',
     description='Lightweight SSH key management on AWS EC2',
     long_description=open('README.rst').read(),
     install_requires=install_requires,

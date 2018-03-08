@@ -24,10 +24,6 @@ install: clean version
 
 build:
 	docker run --rm \
-	-e REPO_URL=$(REPO_URL) \
-	-e AUTHOR=$(AUTHOR) \
-	-e AUTHOR_EMAIL=$(AUTHOR_EMAIL) \
-	-e TAG=$(TAG) \
 	-v $(shell pwd):/build \
 	python:2.7 bash -c 'cd /build; python setup.py sdist'
 
