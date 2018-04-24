@@ -49,7 +49,7 @@ def ensure_iam_role(iam, role_name, trust_principal, keymaker_config=None):
     else:
         logger.info("Creating IAM role %s", role_name)
         role = iam.create_role(RoleName=role_name, AssumeRolePolicyDocument=json.dumps(trust_policy))
-    role_config = parse_keymaker_config(role.description)
+    role_config = parse_keymaker_config(role)
     if keymaker_config is not None and role_config != keymaker_config:
         description = ", ".join("=".join(i) for i in keymaker_config.items()) if keymaker_config else ""
         logger.info('Updating IAM role description to "%s"', description)
@@ -103,11 +103,18 @@ def configure(args):
     logger.info("Attaching IAM policy %s to IAM role %s", keymaker_policy, instance_role)
     instance_role.attach_policy(PolicyArn=keymaker_policy.arn)
 
-def parse_keymaker_config(iam_role_description):
+def parse_keymaker_config(iam_role):
     config = {}
-    for role_desc_word in re.split("[\s\,]+", iam_role_description or ""):
-        if role_desc_word.startswith("keymaker_") and role_desc_word.count("=") == 1:
-            config.update([shlex.split(role_desc_word)[0].split("=")])
+    iam_role_description = None
+    if 'Description' in iam_role:
+        iam_role_description = iam_role['Description']
+    elif 'description' in iam_role:
+        iam_role_description = iam_role['description']
+
+    if iam_role_description is not None:
+        for role_desc_word in re.split("[\s\,]+", iam_role_description or ""):
+            if role_desc_word.startswith("keymaker_") and role_desc_word.count("=") == 1:
+                config.update([shlex.split(role_desc_word)[0].split("=")])
 
     if len(config) == 0 and os.path.isfile(config_file_path) :
         try:
@@ -122,9 +129,10 @@ def parse_keymaker_config(iam_role_description):
 
 def get_assume_role_session(sts, role_arn):
     credentials = sts.assume_role(RoleArn=str(role_arn), RoleSessionName=__name__)["Credentials"]
-    return boto3.Session(aws_access_key_id=credentials["AccessKeyId"],
+    sess = boto3.Session(aws_access_key_id=credentials["AccessKeyId"],
                          aws_secret_access_key=credentials["SecretAccessKey"],
                          aws_session_token=credentials["SessionToken"])
+    return sess
 
 def get_authorized_keys(args):
     session = boto3.Session()
@@ -134,8 +142,9 @@ def get_authorized_keys(args):
     try:
         role_arn = parse_arn(sts.get_caller_identity()["Arn"])
         _, role_name, instance_id = role_arn.resource.split("/", 2)
-        config = parse_keymaker_config(iam.get_role(RoleName=role_name)["Role"]["Description"])
+        config = parse_keymaker_config(iam.get_role(RoleName=role_name)["Role"])
     except Exception as e:
+        logger.warn('exception in get_authorized_keys')
         logger.warn(str(e))
     if "keymaker_id_resolver_account" in config:
         id_resolver_role_arn = ARN(service="iam", account=config["keymaker_id_resolver_account"],
@@ -184,7 +193,7 @@ def get_uid(args):
     try:
         role_arn = parse_arn(sts.get_caller_identity()["Arn"])
         _, role_name, instance_id = role_arn.resource.split("/", 2)
-        config = parse_keymaker_config(iam_caller.get_role(RoleName=role_name)["Role"]["Description"])
+        config = parse_keymaker_config(iam_caller.get_role(RoleName=role_name)["Role"])
     except Exception as e:
         logger.warn(str(e))
 
@@ -213,7 +222,7 @@ def get_groups(args):
     try:
         role_arn = parse_arn(sts.get_caller_identity()["Arn"])
         _, role_name, instance_id = role_arn.resource.split("/", 2)
-        config = parse_keymaker_config(iam_caller.get_role(RoleName=role_name)["Role"]["Description"])
+        config = parse_keymaker_config(iam_caller.get_role(RoleName=role_name)["Role"])
     except Exception as e:
         logger.warn(str(e))
     if "keymaker_id_resolver_account" in config:
@@ -380,7 +389,7 @@ def sync_groups(args):
     try:
         role_arn = parse_arn(sts.get_caller_identity()["Arn"])
         _, role_name, instance_id = role_arn.resource.split("/", 2)
-        config = parse_keymaker_config(iam_caller.get_role(RoleName=role_name)["Role"]["Description"])
+        config = parse_keymaker_config(iam_caller.get_role(RoleName=role_name)["Role"])
     except Exception as e:
         logger.warn(str(e))
     if "keymaker_id_resolver_account" in config:
